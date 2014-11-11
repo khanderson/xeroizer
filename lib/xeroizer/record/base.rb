@@ -29,7 +29,14 @@ module Xeroizer
         def build(attributes, parent)
           record = new(parent)
           attributes.each do | key, value |
-            attr = record.respond_to?("#{key}=") ? key : record.class.fields[key][:internal_name]
+            attr = if record.respond_to?("#{key}=")
+              key
+            elsif field = record.class.fields[key]
+              field[:internal_name]
+            else
+              raise ArgumentError, "Unknown key for #{name}: #{key.inspect}"
+            end
+            
             record.send("#{attr}=", value)
           end
           record
